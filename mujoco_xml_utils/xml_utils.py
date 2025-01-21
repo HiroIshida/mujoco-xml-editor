@@ -73,6 +73,71 @@ class MujocoXmlEditor:
                 body, "geom", attrib={"mesh": name, "type": "mesh", "density": "1000"}
             )
 
+    def add_ground(self):
+        asset = self._create_element_if_not_exists(self.root, "asset")
+        asset.append(
+            Element(
+                "texture",
+                {
+                    "type": "2d",
+                    "name": "groundplane",
+                    "builtin": "checker",
+                    "mark": "edge",
+                    "rgb1": "0.2 0.3 0.4",
+                    "rgb2": "0.1 0.2 0.3",
+                    "markrgb": "0.8 0.8 0.8",
+                    "width": "300",
+                    "height": "300",
+                },
+            )
+        )
+        asset.append(
+            Element(
+                "material",
+                {
+                    "name": "groundplane",
+                    "texture": "groundplane",
+                    "texuniform": "true",
+                    "texrepeat": "5 5",
+                    "reflectance": "0.2",
+                },
+            )
+        )
+        worldbody = self._create_element_if_not_exists(self.root, "worldbody")
+        worldbody.append(
+            Element(
+                "geom",
+                {"name": "floor", "size": "0 0 0.05", "type": "plane", "material": "groundplane"},
+            )
+        )
+
+    def add_sky(self):
+        asset = self._create_element_if_not_exists(self.root, "asset")
+        asset.append(
+            Element(
+                "texture",
+                {
+                    "type": "skybox",
+                    "builtin": "gradient",
+                    "rgb1": "0.3 0.5 0.7",
+                    "rgb2": "0 0 0",
+                    "width": "512",
+                    "height": "3072",
+                },
+            )
+        )
+
+    def add_light(self):
+        visual = self._create_element_if_not_exists(self.root, "visual")
+        visual.append(
+            Element(
+                "headlight",
+                {"diffuse": "0.6 0.6 0.6", "ambient": "0.3 0.3 0.3", "specular": "0 0 0"},
+            )
+        )
+        visual.append(Element("rgba", {"haze": "0.15 0.25 0.35 1"}))
+        visual.append(Element("global", {"azimuth": "150", "elevation": "-20"}))
+
     @staticmethod
     def _mesh_hash(mesh: Trimesh):
         return md5(mesh.vertices.tobytes() + mesh.faces.tobytes()).hexdigest()

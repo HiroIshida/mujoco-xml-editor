@@ -50,6 +50,7 @@ class MujocoXmlEditor:
         cd_threshold=0.02,
         pos: np.ndarray = np.zeros(3),
         euler: np.ndarray = np.zeros(3),
+        density: float = 1000,
     ) -> None:
         # create asset
         asset = self._create_element_if_not_exists(self.root, "asset")
@@ -79,11 +80,13 @@ class MujocoXmlEditor:
             for i in range(len(list(cache_path.iterdir()))):
                 part_name = f"{name}_part_{i}"
                 geom = SubElement(
-                    body, "geom", attrib={"mesh": part_name, "type": "mesh", "density": "1000"}
+                    body,
+                    "geom",
+                    attrib={"mesh": part_name, "type": "mesh", "density": str(density)},
                 )
         else:
             geom = SubElement(
-                body, "geom", attrib={"mesh": name, "type": "mesh", "density": "1000"}
+                body, "geom", attrib={"mesh": name, "type": "mesh", "density": str(density)}
             )
 
     def add_mocap(

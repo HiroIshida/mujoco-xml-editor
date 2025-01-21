@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mujoco-xml-utils"
+version = "0.0.0"
+
+[tool.setuptools]
+packages = ["mujoco_xml_utils"]
+
+[tool.setuptools.package-data]
+"mujoco" = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"

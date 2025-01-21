@@ -3,7 +3,7 @@ import mujoco_viewer
 import numpy as np
 import ycb_utils
 
-from mujoco_xml_utils.xml_utils import MujocoXmlEditor
+from mujoco_xml_editor import MujocoXmlEditor
 
 if __name__ == "__main__":
     editor = MujocoXmlEditor.empty("example")

@@ -1,6 +1,6 @@
 from hashlib import md5
 from pathlib import Path
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, parse, tostring
 
 import coacd
 import numpy as np
@@ -21,7 +21,20 @@ class MujocoXmlEditor:
 
     @classmethod
     def load(cls, file_path: Path):
-        return cls(root=ElementTree.parse(file_path).getroot())
+        root = parse(file_path).getroot()
+        asset = root.find("asset")
+
+        # fix relative paths
+        if asset is not None:
+            package_path = file_path.parent
+            leaf_files = list(package_path.rglob("*"))
+            for mesh in asset.findall("mesh"):
+                relative_path = Path(mesh.get("file"))
+                for leaf_file in leaf_files:
+                    if leaf_file.name == relative_path.name:
+                        mesh.set("file", str(leaf_file.expanduser()))
+                        break
+        return cls(root)
 
     def to_string(self) -> str:
         xmlstr = tostring(self.root, encoding="utf8")

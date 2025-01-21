@@ -73,6 +73,46 @@ class MujocoXmlEditor:
                 body, "geom", attrib={"mesh": name, "type": "mesh", "density": "1000"}
             )
 
+    def add_mocap(
+        self,
+        name: str,
+        attached_to: str,
+        pos: np.ndarray = np.zeros(3),
+        euler: np.ndarray = np.zeros(3),
+    ):
+        worldbody = self._create_element_if_not_exists(self.root, "worldbody")
+        body = SubElement(
+            worldbody,
+            "body",
+            attrib={
+                "name": name,
+                "pos": " ".join(map(str, pos)),
+                "euler": " ".join(map(str, euler)),
+                "mocap": "true",
+            },
+        )
+
+        # create equality
+        equality = self._create_element_if_not_exists(self.root, "equality")
+        equality.append(Element("weld", {"body1": name, "body2": attached_to}))
+
+        # check if attached to body exists
+        body_elem = None
+        for body in worldbody.findall("body"):
+            if body.get("name") == attached_to:
+                body_elem = body
+                break
+        assert body_elem is not None, f"Body {attached_to} does not exist"
+
+        # add free joint
+        body_elem_joint = body_elem.find("joint")
+        if body_elem_joint is not None:
+            assert (
+                body_elem_joint.get("type") == "free"
+            ), f"Joint {body_elem_joint.get('name')} is not free"
+        else:
+            SubElement(body_elem, "joint", attrib={"type": "free"})
+
     def add_ground(self):
         asset = self._create_element_if_not_exists(self.root, "asset")
         asset.append(

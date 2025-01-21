@@ -1,11 +1,12 @@
+from hashlib import md5
+from pathlib import Path
+from xml.etree.ElementTree import Element, SubElement, tostring
+
+import coacd
+import numpy as np
 import trimesh
 from lxml import etree
-import numpy as np
-from pathlib import Path
 from trimesh import Trimesh
-from hashlib import md5
-import coacd
-from xml.etree.ElementTree import Element, SubElement, tostring
 
 
 class MujocoXmlEditor:

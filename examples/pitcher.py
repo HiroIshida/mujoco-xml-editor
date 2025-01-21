@@ -1,6 +1,5 @@
-from xml.etree.ElementTree import tostring
-from lxml import etree
 import ycb_utils
+
 from mujoco_xml_utils.xml_utils import MujocoXmlEditor
 
 editor = MujocoXmlEditor.empty("example")

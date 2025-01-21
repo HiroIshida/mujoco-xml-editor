@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mujoco-xml-utils"
 version = "0.0.0"
+dependencies = ["mujoco", "numpy", "coacd", "lxml"]
 
 [tool.setuptools]
 packages = ["mujoco_xml_utils"]

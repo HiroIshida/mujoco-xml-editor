@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import mujoco
@@ -21,6 +22,10 @@ def set_mocap_position(data: mujoco.MjData, pos: np.ndarray, hand_also: bool = F
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--visualize", action="store_true", help="visualize")
+    args = parser.parse_args()
+
     hand_xml_path = Path(PACKAGE_PATH) / "2f85.xml"
     editor = MujocoXmlEditor.load(hand_xml_path)
     mesh_path = ycb_utils.resolve_path("019_pitcher_base")
@@ -35,38 +40,40 @@ if __name__ == "__main__":
 
     model = mujoco.MjModel.from_xml_string(xmlstr)
     data = mujoco.MjData(model)
-    viewer = mujoco_viewer.MujocoViewer(model, data)
 
-    finger_act_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "fingers_actuator")
+    if args.visualize:
+        viewer = mujoco_viewer.MujocoViewer(model, data)
 
-    input("press enter to start the simulation")
-    pos = np.array([0.0, -0.02, 0.15])
-    # very important that the hand is also moved to the same position
-    set_mocap_position(data, pos, hand_also=True)
+        finger_act_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "fingers_actuator")
 
-    # move the finger down
-    for i in range(110):
-        pos[0] += 0.0004
-        set_mocap_position(data, pos)
-        data.ctrl[finger_act_id] = 100
-        mujoco.mj_step(model, data)
-        viewer.render()
-    print("done1")
+        input("press enter to start the simulation")
+        pos = np.array([0.0, -0.02, 0.15])
+        # very important that the hand is also moved to the same position
+        set_mocap_position(data, pos, hand_also=True)
 
-    # grasp
-    for i in range(300):
-        data.ctrl[finger_act_id] = 220
-        mujoco.mj_step(model, data)
-        viewer.render()
-    print("done2")
+        # move the finger down
+        for i in range(110):
+            pos[0] += 0.0004
+            set_mocap_position(data, pos)
+            data.ctrl[finger_act_id] = 100
+            mujoco.mj_step(model, data)
+            viewer.render()
+        print("done1")
 
-    # move the finger up
-    for i in range(300):
-        pos[2] += 0.0004
-        set_mocap_position(data, pos)
-        mujoco.mj_step(model, data)
-        viewer.render()
+        # grasp
+        for i in range(300):
+            data.ctrl[finger_act_id] = 220
+            mujoco.mj_step(model, data)
+            viewer.render()
+        print("done2")
 
-    while True:
-        mujoco.mj_step(model, data)
-        viewer.render()
+        # move the finger up
+        for i in range(300):
+            pos[2] += 0.0004
+            set_mocap_position(data, pos)
+            mujoco.mj_step(model, data)
+            viewer.render()
+
+        while True:
+            mujoco.mj_step(model, data)
+            viewer.render()

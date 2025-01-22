@@ -7,6 +7,7 @@ import coacd
 import numpy as np
 import trimesh
 from lxml import etree
+from skrobot.coordinates import Coordinates
 from skrobot.coordinates.math import matrix2quaternion
 from skrobot.model.primitives import Box, Cylinder
 from trimesh import Trimesh
@@ -56,6 +57,34 @@ class MujocoXmlEditor:
         )
         SubElement(body, "joint", attrib={"name": "joint_" + name, "type": "free"})
         body.append(self._create_primitive_geom(primitive, name, density))
+
+    def add_primitive_composite(
+        self,
+        co_ref: Coordinates,
+        primitives: Sequence[Union[Cylinder, Box]],
+        name: str,
+        density: float = 1000,
+    ):
+        worldbody = self._create_element_if_not_exists(self.root, "worldbody")
+        pos = co_ref.translation
+        quat = matrix2quaternion(co_ref.rotation)
+        body = SubElement(
+            worldbody,
+            "body",
+            attrib={"name": name, "pos": " ".join(map(str, pos)), "quat": " ".join(map(str, quat))},
+        )
+        SubElement(body, "joint", attrib={"name": "joint_" + name, "type": "free"})
+        for i, primitive in enumerate(primitives):
+            tf_prim_to_world = primitive.get_transform()
+            tf_ref_to_world = co_ref.get_transform()
+            tf_prim_to_ref = tf_prim_to_world * tf_ref_to_world.inverse_transformation()
+            relative_pos = tf_prim_to_ref.translation
+            relative_quat = matrix2quaternion(tf_prim_to_ref.rotation)
+            prim_name = f"{name}_part_{i}"
+            geom = self._create_primitive_geom(primitive, prim_name, density)
+            geom.set("pos", " ".join(map(str, relative_pos)))
+            geom.set("quat", " ".join(map(str, relative_quat)))
+            body.append(geom)
 
     def _create_primitive_geom(
         self, primitive: Union[Cylinder, Box], name: str, density: float

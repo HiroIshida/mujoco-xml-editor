@@ -8,6 +8,7 @@ setup(
         "numpy",
         "coacd",
         "lxml",
+        "scikit-robot",
     ],
     extras_require={
         "examples": [

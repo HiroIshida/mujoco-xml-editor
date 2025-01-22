@@ -1,11 +1,14 @@
 from hashlib import md5
 from pathlib import Path
+from typing import Sequence, Union
 from xml.etree.ElementTree import Element, SubElement, parse, tostring
 
 import coacd
 import numpy as np
 import trimesh
 from lxml import etree
+from skrobot.coordinates.math import matrix2quaternion
+from skrobot.model.primitives import Box, Cylinder
 from trimesh import Trimesh
 
 
@@ -14,13 +17,13 @@ class MujocoXmlEditor:
         self.root = root
 
     @classmethod
-    def empty(cls, model_name: str):
+    def empty(cls, model_name: str) -> "MujocoXmlEditor":
         root = Element("mujoco")
         root.set("model", model_name)
         return cls(root)
 
     @classmethod
-    def load(cls, file_path: Path):
+    def load(cls, file_path: Path) -> "MujocoXmlEditor":
         root = parse(file_path).getroot()
         asset = root.find("asset")
 
@@ -41,6 +44,30 @@ class MujocoXmlEditor:
         et = etree.fromstring(xmlstr)
         pretty_xml = etree.tostring(et, pretty_print=True, encoding=str)
         return pretty_xml
+
+    def add_primitive(self, primitive: Union[Cylinder, Box], name: str, density: float = 1000):
+        worldbody = self._create_element_if_not_exists(self.root, "worldbody")
+        pos = primitive.translation
+        quat = matrix2quaternion(primitive.rotation)
+        body = SubElement(
+            worldbody,
+            "body",
+            attrib={"name": name, "pos": " ".join(map(str, pos)), "quat": " ".join(map(str, quat))},
+        )
+        SubElement(body, "joint", attrib={"name": "joint_" + name, "type": "free"})
+        geom_attr = {"name": name, "density": str(density)}
+        if isinstance(primitive, Cylinder):
+            specific_attr = {
+                "type": "cylinder",
+                "size": f"{primitive.radius} {0.5*primitive.height}",
+            }
+        elif isinstance(primitive, Box):
+            half_extents = np.array(primitive.extents) * 0.5
+            specific_attr = {"type": "box", "size": " ".join(map(str, half_extents))}
+        else:
+            raise ValueError(f"Primitive {primitive} is not supported yet")
+        geom_attr.update(specific_attr)
+        SubElement(body, "geom", attrib=geom_attr)
 
     def add_mesh(
         self,

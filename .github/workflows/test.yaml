@@ -27,3 +27,4 @@ jobs:
         run: |
           python examples/pitcher.py
           python examples/robotiq_hand_grasp.py
+          python examples/primitive.py

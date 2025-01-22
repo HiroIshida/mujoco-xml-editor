@@ -3,6 +3,8 @@ Utilities for working with MuJoCo XML files.
 
 Install with:
 ```bash
+sudo apt-get update
+sudo apt-get install libspatialindex-dev freeglut3-dev libsuitesparse-dev libblas-dev liblapack-dev
 pip install .[examples] -v
 ```
 

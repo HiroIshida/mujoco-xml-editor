@@ -55,19 +55,22 @@ class MujocoXmlEditor:
             attrib={"name": name, "pos": " ".join(map(str, pos)), "quat": " ".join(map(str, quat))},
         )
         SubElement(body, "joint", attrib={"name": "joint_" + name, "type": "free"})
-        geom_attr = {"name": name, "density": str(density)}
+        body.append(self._create_primitive_geom(primitive, name, density))
+
+    def _create_primitive_geom(
+        self, primitive: Union[Cylinder, Box], name: str, density: float
+    ) -> Element:
+        geom = Element("geom", {"name": name, "density": str(density)})
         if isinstance(primitive, Cylinder):
-            specific_attr = {
-                "type": "cylinder",
-                "size": f"{primitive.radius} {0.5*primitive.height}",
-            }
+            geom.set("type", "cylinder")
+            geom.set("size", f"{primitive.radius} {0.5*primitive.height}")
         elif isinstance(primitive, Box):
             half_extents = np.array(primitive.extents) * 0.5
-            specific_attr = {"type": "box", "size": " ".join(map(str, half_extents))}
+            geom.set("type", "box")
+            geom.set("size", " ".join(map(str, half_extents)))
         else:
             raise ValueError(f"Primitive {primitive} is not supported yet")
-        geom_attr.update(specific_attr)
-        SubElement(body, "geom", attrib=geom_attr)
+        return geom
 
     def add_mesh(
         self,

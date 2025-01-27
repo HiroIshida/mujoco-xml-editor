@@ -40,6 +40,10 @@ class MujocoXmlEditor:
                         break
         return cls(root)
 
+    def merge_from(self, other: "MujocoXmlEditor") -> None:
+        for other_child in other.root:
+            self.root.append(other_child)
+
     def to_string(self) -> str:
         xmlstr = tostring(self.root, encoding="utf8")
         et = etree.fromstring(xmlstr)

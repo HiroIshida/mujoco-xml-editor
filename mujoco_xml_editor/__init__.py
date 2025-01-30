@@ -6,6 +6,7 @@ from xml.etree.ElementTree import Element, SubElement, parse, tostring
 import coacd
 import numpy as np
 import trimesh
+from filelock import FileLock
 from lxml import etree
 from skrobot.coordinates import Coordinates
 from skrobot.coordinates.math import matrix2quaternion
@@ -268,13 +269,15 @@ class MujocoXmlEditor:
         cache_base_path = (
             Path("~/.cache/mujoco_xml_utils/convex_decomposition").expanduser() / dir_name
         )
-        if not cache_base_path.exists():
-            cache_base_path.mkdir(parents=True, exist_ok=True)
-            parts = coacd.run_coacd(coacd_mesh, threshold=threshold)
-            for i, (V, F) in enumerate(parts):
-                part = Trimesh(V, F)
-                file_path = cache_base_path / f"part_{i}.obj"
-                part.export(file_path)
+        lock_file = cache_base_path.parent / f"{dir_name}.lock"
+        with FileLock(lock_file):
+            if not cache_base_path.exists():
+                cache_base_path.mkdir(parents=True, exist_ok=True)
+                parts = coacd.run_coacd(coacd_mesh, threshold=threshold)
+                for i, (V, F) in enumerate(parts):
+                    part = Trimesh(V, F)
+                    file_path = cache_base_path / f"part_{i}.obj"
+                    part.export(file_path)
         return cache_base_path
 
     @staticmethod

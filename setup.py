@@ -9,6 +9,7 @@ setup(
         "coacd",
         "lxml",
         "scikit-robot",
+        "filelock",
     ],
     extras_require={
         "examples": [

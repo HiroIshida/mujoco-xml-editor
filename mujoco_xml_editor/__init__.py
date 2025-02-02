@@ -51,7 +51,13 @@ class MujocoXmlEditor:
         pretty_xml = etree.tostring(et, pretty_print=True, encoding=str)
         return pretty_xml
 
-    def add_primitive(self, primitive: Union[Cylinder, Box], name: str, density: float = 1000):
+    def add_primitive(
+        self,
+        primitive: Union[Cylinder, Box],
+        name: str,
+        density: float = 1000,
+        rgba: Sequence[float] = (0.5, 0.5, 0.5, 1.0),
+    ):
         worldbody = self._create_element_if_not_exists(self.root, "worldbody")
         pos = primitive.translation
         quat = matrix2quaternion(primitive.rotation)
@@ -61,7 +67,7 @@ class MujocoXmlEditor:
             attrib={"name": name, "pos": " ".join(map(str, pos)), "quat": " ".join(map(str, quat))},
         )
         SubElement(body, "joint", attrib={"name": "joint_" + name, "type": "free"})
-        body.append(self._create_primitive_geom(primitive, name, density))
+        body.append(self._create_primitive_geom(primitive, name, density, rgba))
 
     def add_primitive_composite(
         self,
@@ -69,6 +75,7 @@ class MujocoXmlEditor:
         primitives: Sequence[Union[Cylinder, Box]],
         name: str,
         density: float = 1000,
+        rgba: Sequence[float] = (0.5, 0.5, 0.5, 1.0),
     ):
         worldbody = self._create_element_if_not_exists(self.root, "worldbody")
         pos = co_ref.translation
@@ -86,15 +93,16 @@ class MujocoXmlEditor:
             relative_pos = tf_prim_to_ref.translation
             relative_quat = matrix2quaternion(tf_prim_to_ref.rotation)
             prim_name = f"{name}_part_{i}"
-            geom = self._create_primitive_geom(primitive, prim_name, density)
+            geom = self._create_primitive_geom(primitive, prim_name, density, rgba)
             geom.set("pos", " ".join(map(str, relative_pos)))
             geom.set("quat", " ".join(map(str, relative_quat)))
             body.append(geom)
 
     def _create_primitive_geom(
-        self, primitive: Union[Cylinder, Box], name: str, density: float
+        self, primitive: Union[Cylinder, Box], name: str, density: float, rgba: Sequence[float]
     ) -> Element:
         geom = Element("geom", {"name": name, "density": str(density)})
+        geom.set("rgba", " ".join(map(str, rgba)))
         if isinstance(primitive, Cylinder):
             geom.set("type", "cylinder")
             geom.set("size", f"{primitive.radius} {0.5*primitive.height}")

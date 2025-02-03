@@ -51,6 +51,10 @@ class MujocoXmlEditor:
         pretty_xml = etree.tostring(et, pretty_print=True, encoding=str)
         return pretty_xml
 
+    def set_timestep(self, dt: float) -> None:
+        option = self._create_element_if_not_exists(self.root, "option")
+        option.set("timestep", str(dt))
+
     def add_primitive(
         self,
         primitive: Union[Cylinder, Box],

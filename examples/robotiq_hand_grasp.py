@@ -29,6 +29,7 @@ if __name__ == "__main__":
     hand_xml_path = Path(PACKAGE_PATH) / "2f85.xml"
     editor = MujocoXmlEditor.load(hand_xml_path)
     mesh_path = ycb_utils.resolve_path("019_pitcher_base")
+    editor.set_timestep(0.003)
     editor.add_mesh(
         mesh_path, "pitcher_base", convex_decomposition=True, pos=[0.3, 0, 0], euler=[0, 0, 2.3704]
     )
